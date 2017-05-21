@@ -1,6 +1,6 @@
 {
   "name": "kraken-loader",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Kraken.io image optimisation loader for Webpack 2",
   "main": "index.js",
   "scripts": {
