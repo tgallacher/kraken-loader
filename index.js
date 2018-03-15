@@ -6,6 +6,19 @@ const Kraken = require('kraken');
 const prettyBytes = require('pretty-bytes');
 
 /**
+ * Default options
+ *
+ * @type {Object}
+ */
+const defaults = {
+  enabled: true,
+  secret: null,
+  silent: false,
+  lossy: true,
+  key: null
+};
+
+/**
  * Kraken.io API options
  *
  * @type {Object}
@@ -13,89 +26,102 @@ const prettyBytes = require('pretty-bytes');
 let options = {};
 
 /**
- * Default options
- *
- * @type {Object}
- */
-const defaults = {
-    key: null,
-    secret: null,
-    lossy: true,
-    enabled: true,
-    silent: false
-};
-
-/**
  * Indicate error state
+ *
  * @type {Boolean}
  */
 let stateOk = true;
 
+/**
+ * Print a message to stdout
+ *
+ * @param {String} str - Message string to print to stdout
+ * @param {Boolean} isError - Is the message an error message - will adjust formatting?
+ */
+const printMessage = (str, isError = false) => isError
+  ? `${chalk.red('✔ kraken-loader:')} ${chalk.grey(`'${str}'`)}`
+  : `${chalk.green('✔ kraken-loader:')} ${chalk.grey(`'${str}'`)}`;
 
-const errMessage = str =>
-    `kraken-loader: ${str}`;
+/**
+ * Main loader function.
+ *
+ * @param {Buffer} source
+ */
+const krakenLoader = function (source) {
+  const callback = this.async();
 
-const fileSuccessMessage = (filename, str) =>
-    `${chalk.green('✔ kraken-loader:')} ${chalk.grey(`'${filename}'`)} - ${str}`;
+  if (this.cacheable) {
+    this.cacheable();
+  }
 
+  options = Object.assign(
+    {},
+    defaults,
+    utils.getOptions(this)
+  );
 
-module.exports = function krakenLoader(content){
-    this.cacheable && this.cacheable();
+  if ( ! options.enabled || ! stateOk) {
+    return source;
+  }
 
-    options = Object.assign({}, defaults, utils.getOptions(this));
-
-    if( ! options.enabled || ! stateOk){
-        return content;
-    }
-
-    // Try loading API credentials from env. vars
-    if( ! options.key || ! options.secret){
-        options = Object.assign({}, options, {
-            key: process.env.KRAKEN_LOADER_KEY,
-            secret: process.env.KRAKEN_LOADER_SECRET
-        });
-    }
-
-    if( ! options.key || ! options.secret){
-        stateOk = false; // prevent duplicate errors
-        this.emitError(new Error(errMessage('Missing Kraken API key and secret')));
-
-        return content;
-    }
-
-    const kraken = new Kraken({
-        api_key: options.key,
-        api_secret: options.secret
+  // Try loading API credentials from env. vars
+  if ( ! options.key || ! options.secret) {
+    options = Object.assign({}, options, {
+      key: process.env.KRAKEN_LOADER_KEY,
+      secret: process.env.KRAKEN_LOADER_SECRET
     });
+  }
 
-    const filename = this.resourcePath.replace(this.context, '');
-    const callback = this.async();
+  if ( ! options.key || ! options.secret) {
+    stateOk = false; // prevent duplicate errors
 
-    kraken.upload({
-        file: this.resourcePath,
-        lossy: options.lossy,
-        wait: true
-    }, (data) => {
-        ! data.success && callback(new Error(errMessage(data.message)));
+    return callback(new Error('Missing Kraken API key and secret'), source);
+  }
 
-        const savings = data.saved_bytes;
-        const originalSize = data.original_size;
+  const filename = this.resourcePath.replace(this.context, '');
 
-        const percent = ((savings * 100) / originalSize).toFixed(2);
-        const msg = savings > 0
-            ? `saved ${prettyBytes(savings)} (${percent}%)`
-            : 'already optimized';
+  const kraken = new Kraken({
+    api_secret: options.secret,
+    api_key: options.key
+  });
 
-        // display savings
-        if( ! options.silent){
-            console.log(fileSuccessMessage(filename, msg));
-        }
+  // Process file
+  kraken.upload({
+    lossy: options.lossy,
+    file: this.resourcePath,
+    wait: true
+  }, async (data) => {
+    if ( ! data.success) {
+      return callback(new Error(data.message), source);
+    }
 
-        fetch(data.kraked_url)
-            .then( resp => resp.buffer() )
-            .then( buffer => callback(null, buffer) )
-            .catch( err => callback(err) );
-    });
+    // display savings
+    if ( ! options.silent) {
+      const savings = data.saved_bytes;
+      const origSize = data.original_size;
+      const percent = ((savings / origSize) * 100).toFixed(2);
+
+      const msg = savings > 0
+        ? `saved ${prettyBytes(savings)} (${percent}%)`
+        : 'already optimized';
+
+      console.log(printMessage(`${filename} - ${msg}`));
+    }
+
+    //
+    // Get the optimised file + pass onwards
+    //
+
+    try {
+      const resp = await fetch(data.kraked_url);
+      const buffer = await resp.buffer();
+
+      callback(null, buffer);
+    } catch (err) {
+      callback(err, source);
+    }
+  });
 };
 
-module.exports.raw = true;
+module.exports = krakenLoader;
+module.exports.raw = true;  // Ensure the image isn't UTF-8 encoded; instead receive the raw buffer

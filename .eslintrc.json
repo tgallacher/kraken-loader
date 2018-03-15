@@ -4,12 +4,8 @@
         "airbnb"
     ],
     "parserOptions": {
-        "ecmaVersion": 6,
-        "sourceType": "module",
-        "ecmaFeatures": {
-            "jsx": true,
-            "experimentalObjectRestSpread": true
-        }
+        "ecmaVersion": 8,
+        "sourceType": "module"
     },
     "env": {
         "commonjs": true,
@@ -18,41 +14,29 @@
         "node": true
     },
     "rules": {
-        "indent": ["error", 4, {
-            "VariableDeclarator": { "var": 2, "let": 2, "const": 3},
-            "SwitchCase": 1,
-            "MemberExpression": 1
-        }],
-        "comma-dangle": ["error", "never"],
-        "space-before-function-paren": ["error", "never"],
-        "keyword-spacing": ["error", {
-            "before": false,
-            "after": true,
-            "overrides": {
-                "as": {"before": true},
-                "if": {"after": false},
-                "for": {"after": false},
-                "from": {"before": true},
-                "else": {"after": false},
-                "switch": {"after": false}
+        "comma-dangle": [
+            "error",
+            "never"
+        ],
+        "space-unary-ops": [
+            "error",
+            {
+                "overrides": {
+                    "!": true
+                }
             }
-        }],
-        "eol-last": ["error", "always"],
-        "comma-spacing": ["error", { "before": false, "after": true }],
-        "space-before-blocks": ["error", "never"],
-        "no-trailing-spaces": "error",
-        "func-names": ["error", "as-needed"],
-        "no-multi-spaces": "error",
-        "key-spacing": ["error", { "beforeColon": false, "afterColon": true }],
+        ],
+        "no-unused-expressions": [
+            "error",
+            {
+                "allowShortCircuit": true,
+                "allowTernary": true
+            }
+        ],
         "space-in-parens": "off",
-        "space-unary-ops": ["error", {
-            "overrides": {
-                "!": true
-            }
-        }],
-        "no-unused-expressions": ["error", {
-            "allowShortCircuit": true,
-            "allowTernary": true
-        }]
+        "func-names": [
+            "error",
+            "as-needed"
+        ]
     }
 }
