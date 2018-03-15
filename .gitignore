@@ -1,5 +1,7 @@
 ## Template from: github/gitignore
 
+.DS_Store
+
 # Logs
 logs
 *.log
