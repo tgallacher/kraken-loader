@@ -61,7 +61,7 @@ const krakenLoader = function (source) {
   );
 
   if ( ! options.enabled || ! stateOk) {
-    return source;
+    return callback(null, source);
   }
 
   // Try loading API credentials from env. vars
@@ -116,11 +116,13 @@ const krakenLoader = function (source) {
       const resp = await fetch(data.kraked_url);
       const buffer = await resp.buffer();
 
-      callback(null, buffer);
+      return callback(null, buffer);
     } catch (err) {
-      callback(err, source);
+      return callback(err, source);
     }
   });
+
+  return callback(new Error('Unknown error'));
 };
 
 module.exports = krakenLoader;
