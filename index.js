@@ -92,7 +92,9 @@ const krakenLoader = function (source) {
     wait: true
   }, async (data) => {
     if ( ! data.success) {
-      return callback(new Error(data.message), source);
+      const err = new Error(data.message || 'Unknown Kraken API error. Please try again.');
+
+      return callback(err, source);
     }
 
     // display savings
@@ -122,7 +124,7 @@ const krakenLoader = function (source) {
     }
   });
 
-  return callback(new Error('Unknown error'));
+  // return callback(new Error('Unknown error'));
 };
 
 module.exports = krakenLoader;
