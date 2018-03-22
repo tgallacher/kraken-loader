@@ -38,9 +38,10 @@ let stateOk = true;
  * @param {String} str - Message string to print to stdout
  * @param {Boolean} isError - Is the message an error message - will adjust formatting?
  */
+/* eslint no-confusing-arrow: off */
 const printMessage = (str, isError = false) => isError
-  ? `${chalk.red('✔ kraken-loader:')} ${chalk.grey(`'${str}'`)}`
-  : `${chalk.green('✔ kraken-loader:')} ${chalk.grey(`'${str}'`)}`;
+  ? `${chalk.red('✗')} kraken-loader: ${chalk.grey(`'${str}'`)}`
+  : `${chalk.green('✔')} kraken-loader: ${chalk.grey(`'${str}'`)}`;
 
 /**
  * Main loader function.
@@ -123,9 +124,10 @@ const krakenLoader = function (source) {
       return callback(err, source);
     }
   });
-
-  // return callback(new Error('Unknown error'));
 };
 
 module.exports = krakenLoader;
-module.exports.raw = true;  // Ensure the image isn't UTF-8 encoded; instead receive the raw buffer
+
+// Ensure the image isn't UTF-8 encoded;
+// instead receive the raw buffer
+module.exports.raw = true;
