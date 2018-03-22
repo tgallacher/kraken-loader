@@ -24,17 +24,19 @@ $ npm i -D kraken-loader
 <a name="options"></a>
 ## Options
 
+The loader supports the following options:
+
 * `key` - your Kraken API Key
 * `secret` - your Kraken API Secret
 * `lossy` - enable/disable intelligent lossy optimization. Defaults to `true`
-* `enabled` - enable/disable optimization. Defaults to `true`
+* `enabled` - enable/disable optimization using this loader. Defaults to `true`
 * `silent` - enable/disable byte savings message. Defaults to `false`
 
-The loader also supports the following environment variables for supplying API credentials:
+The loader also supports supplying your API credentials using the following environment variables:
 * `KRAKEN_LOADER_KEY` - Kraken API Key
 * `KRAKEN_LOADER_SECRET` - Kraken API Secret
 
-The environment variables offer a way to supply your API credentials without having to commit them to your VCS.
+The environment variables offer a way to supply your API credentials without having to commit them to your VCS. This is the recommended method for supplying your Kraken.io API credentials.
 
 <a name="usage"></a>
 ## Usage
@@ -45,7 +47,7 @@ It is expected that this plugin will be used alongside the [url-loader](https://
 ### Use with loader defaults
 The following example requires your API credentials to be supplied using the supported environment variables (see [Options](#options)).
 
-````
+````js
 module.exports = {
     ...
     module: {
@@ -68,7 +70,7 @@ module.exports = {
 ````
 
 ### Customising the loader config
-```
+```js
 module.exports = {
     ...
     module: {
@@ -85,16 +87,16 @@ module.exports = {
                     {
                         loader: 'kraken-loader',
                         options: {
-                            lossy: true,
-                            key: 'my-api-key',
-                            secret: 'my-api-secret',
                             enabled: process.env.NODE_ENV === 'production',
-                            silent: true
+                            secret: 'my-api-secret',
+                            silent: true,
+                            lossy: true,
+                            key: 'my-api-key'
                         }
                     }
                 ]
             }
-        ],
+        ]
     }
 }
 ```
